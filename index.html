@@ -2,11 +2,7 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#0f172a">
-    <meta name="description" content="Personal Finance Tracker">
-    <link rel="manifest" href="manifest.webmanifest">
-    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Behtarin Finance Tracker App</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -40,6 +36,23 @@
                 overflow: visible !important;
             }
         }
+        /* Smart navigation + privacy hardening */
+        #sidebar { backdrop-filter: blur(14px); }
+        #menuList .menu-group { margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; background:#fff; }
+        #menuList .menu-group summary { cursor:pointer; list-style:none; padding:11px 12px; background:#f8fafc; color:#334155; font-weight:800; display:flex; align-items:center; gap:9px; }
+        #menuList .menu-group summary::-webkit-details-marker { display:none; }
+        #menuList .menu-group summary:after { content:'＋'; margin-left:auto; color:#64748b; }
+        #menuList .menu-group[open] summary:after { content:'−'; }
+        #menuList .menu-group .menu-btn { padding:10px 12px; border-radius:8px; }
+        #menuList .menu-primary { background:linear-gradient(135deg,#4f46e5,#4338ca)!important;color:white!important; box-shadow:0 5px 12px #4338ca35; padding:13px!important; margin-bottom:12px; }
+        #menuList .menu-primary i { color:white!important; }
+        .privacy-blur { filter: blur(7px); user-select:none; }
+        #quickExpenseFab { position:fixed; right:14px; bottom:76px; z-index:35; width:46px; height:46px; padding:0; border-radius:9999px; display:flex; align-items:center; justify-content:center; box-shadow:0 5px 16px #4f46e544; touch-action:none; user-select:none; cursor:grab; transition:box-shadow .15s, transform .15s; }
+        #quickExpenseFab:active { cursor:grabbing; }
+        #quickExpenseFab .fab-label { display:none; }
+        #quickExpenseFab i { margin:0!important; font-size:18px; }
+        @media(min-width:768px){ #quickExpenseFab { display:none!important; } }
+        @media print { #quickExpenseFab {display:none!important;} }
     </style>
 </head>
 <body id="appBody" class="bg-white text-slate-900 font-sans pb-28 delete-locked">
@@ -83,11 +96,11 @@
             </div>
         </div>
         <div class="flex items-center space-x-2">
-            <button id="safeModeBtn" onclick="toggleDeleteLock()" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded-full shadow flex items-center space-x-1 font-bold transition duration-200" title="Safe Mode">
+            <button id="safeModeBtn" onclick="toggleDeleteLock()" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded-full shadow flex items-center space-x-1 font-bold transition duration-200" title="Safe Mode: edit/delete controls ko lock/unlock karein" aria-label="Safe Mode">
                 <i id="safeModeIcon" class="fa-solid fa-lock"></i>
                 <span id="safeModeText" class="hidden sm:inline">Safe</span>
             </button>
-            <button onclick="togglePrivacyMode()" id="privacyToggleBtn" class="text-xs bg-slate-800 hover:bg-slate-900 text-amber-300 px-2.5 py-1.5 rounded-full shadow flex items-center space-x-1 font-bold transition duration-200" title="Privacy Mode: Hide/Show Balances">
+            <button onclick="togglePrivacyMode()" id="privacyToggleBtn" class="text-xs bg-slate-800 hover:bg-slate-900 text-amber-300 px-2.5 py-1.5 rounded-full shadow flex items-center space-x-1 font-bold transition duration-200" title="Privacy Mode: balances hide/show karein" aria-label="Privacy Mode: balances hide/show">
                 <i id="privacyIcon" class="fa-solid fa-eye-slash"></i>
                 <span class="hidden sm:inline" id="privacyText">Privacy</span>
             </button>
@@ -116,26 +129,37 @@
         </div>
         
         <div id="menuList" class="flex-1 overflow-y-auto p-3 space-y-1.5 text-sm font-medium">
-            <button onclick="switchTab('addExpense')" class="menu-btn w-full text-left px-3.5 py-2.5 rounded-lg hover:bg-indigo-50 text-rose-600 font-semibold flex items-center"><i class="fa-solid fa-circle-minus w-8 text-base"></i> Add Expense</button>
-            <button onclick="switchTab('dashboard')" class="menu-btn w-full text-left px-3.5 py-2.5 rounded-lg hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-chart-pie w-8 text-indigo-600 text-base"></i> Dash Board</button>
-            <button onclick="switchTab('addIncome')" class="menu-btn w-full text-left px-3.5 py-2.5 rounded-lg hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-circle-plus w-8 text-emerald-600 text-base"></i> Add Income</button>
-            <button onclick="switchTab('bankAccounts')" class="menu-btn w-full text-left px-3.5 py-2.5 rounded-lg hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-building-columns w-8 text-blue-600 text-base"></i> Bank Account</button>
-            <button onclick="switchTab('creditCards')" class="menu-btn w-full text-left px-3.5 py-2.5 rounded-lg hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-credit-card w-8 text-purple-600 text-base"></i> Credit Card</button>
-            <button onclick="switchTab('loans')" class="menu-btn w-full text-left px-3.5 py-2.5 rounded-lg hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-hand-holding-dollar w-8 text-amber-600 text-base"></i> Loan</button>
-            <button onclick="switchTab('mutualFunds')" class="menu-btn w-full text-left px-3.5 py-2.5 rounded-lg hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-chart-line w-8 text-teal-600 text-base"></i> Mutual Fund</button>
-            <button onclick="switchTab('lic')" class="menu-btn w-full text-left px-3.5 py-2.5 rounded-lg hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-shield-halved w-8 text-cyan-600 text-base"></i> LIC</button>
-            <button onclick="switchTab('rd')" class="menu-btn w-full text-left px-3.5 py-2.5 rounded-lg hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-piggy-bank w-8 text-orange-600 text-base"></i> RD</button>
-            <button onclick="switchTab('calendarView')" class="menu-btn w-full text-left px-3.5 py-2.5 rounded-lg hover:bg-indigo-50 text-indigo-700 font-bold flex items-center"><i class="fa-solid fa-calendar-days w-8 text-indigo-600 text-base"></i> Calendar View (Dues)</button>
-            <button onclick="switchTab('reports')" class="menu-btn w-full text-left px-3.5 py-2.5 rounded-lg hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-file-lines w-8 text-indigo-600 text-base"></i> Report</button>
-            <button onclick="switchTab('graphicalView')" class="menu-btn w-full text-left px-3.5 py-2.5 rounded-lg hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-chart-pie w-8 text-pink-600 text-base"></i> Graphical Expense View</button>
-            <button onclick="switchTab('searchTab')" class="menu-btn w-full text-left px-3.5 py-2.5 rounded-lg hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-magnifying-glass w-8 text-sky-600 text-base"></i> Advanced Search</button>
-            <button onclick="switchTab('calculator')" class="menu-btn w-full text-left px-3.5 py-2.5 rounded-lg hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-calculator w-8 text-indigo-600 text-base"></i> Calculator</button>
-            <button onclick="switchTab('specialTransactions')" class="menu-btn w-full text-left px-3.5 py-2.5 rounded-lg hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-arrows-split-up-and-left w-8 text-pink-600 text-base"></i> Special Transaction & Borrowed</button>
-            
-            <div class="pt-2 border-t border-slate-200 mt-2 space-y-1">
-                <button onclick="openSecurityModal('pin')" class="menu-btn w-full text-left px-3.5 py-2 rounded-lg hover:bg-indigo-50 text-indigo-700 font-semibold text-xs flex items-center"><i class="fa-solid fa-key w-7 text-indigo-600"></i> Change PIN via SMS OTP</button>
-                <button onclick="openSecurityModal('mobile')" class="menu-btn w-full text-left px-3.5 py-2 rounded-lg hover:bg-indigo-50 text-indigo-700 font-semibold text-xs flex items-center"><i class="fa-solid fa-mobile-screen w-7 text-indigo-600"></i> Change Mobile No. via SMS OTP</button>
-            </div>
+            <button onclick="switchTab('addExpense')" class="menu-btn menu-primary w-full text-left rounded-xl font-bold flex items-center"><i class="fa-solid fa-circle-minus w-8 text-lg"></i><span class="flex-1">Add Expense</span><span class="text-[10px] bg-white/20 px-2 py-1 rounded-full">QUICK</span></button>
+            <button onclick="switchTab('dashboard')" class="menu-btn w-full text-left px-3.5 py-2.5 rounded-lg hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-chart-pie w-8 text-indigo-600 text-base"></i> Dashboard</button>
+            <details class="menu-group"><summary><i class="fa-solid fa-wallet text-indigo-600"></i> Daily Finance</summary><div class="p-2 space-y-1">
+              <button onclick="switchTab('addIncome')" class="menu-btn w-full text-left hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-circle-plus w-8 text-emerald-600"></i> Add Income</button>
+              <button onclick="switchTab('bankAccounts')" class="menu-btn w-full text-left hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-building-columns w-8 text-blue-600"></i> Bank Accounts</button>
+              <button onclick="switchTab('creditCards')" class="menu-btn w-full text-left hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-credit-card w-8 text-purple-600"></i> Credit Cards</button>
+              <button onclick="switchTab('loans')" class="menu-btn w-full text-left hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-hand-holding-dollar w-8 text-amber-600"></i> Loans</button>
+              <button onclick="switchTab('specialTransactions')" class="menu-btn w-full text-left hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-arrows-split-up-and-left w-8 text-pink-600"></i> Borrowed / Special Transactions</button>
+            </div></details>
+            <details class="menu-group"><summary><i class="fa-solid fa-chart-line text-teal-600"></i> Investments & Savings</summary><div class="p-2 space-y-1">
+              <button onclick="switchTab('mutualFunds')" class="menu-btn w-full text-left hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-chart-line w-8 text-teal-600"></i> Mutual Fund</button>
+              <button onclick="switchTab('rd')" class="menu-btn w-full text-left hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-piggy-bank w-8 text-orange-600"></i> RD</button>
+              <button onclick="switchTab('lic')" class="menu-btn w-full text-left hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-shield-halved w-8 text-cyan-600"></i> LIC</button>
+            </div></details>
+            <details class="menu-group"><summary><i class="fa-solid fa-calendar-check text-rose-600"></i> Bills & Reminders</summary><div class="p-2 space-y-1">
+              <button onclick="switchTab('calendarView')" class="menu-btn w-full text-left hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-calendar-days w-8 text-indigo-600"></i> Calendar / Dues</button>
+              <button onclick="switchTab('paymentReminders')" class="menu-btn w-full text-left hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-bell w-8 text-rose-600"></i> Payment Reminders</button>
+              <button onclick="switchTab('rechargeManager')" class="menu-btn w-full text-left hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-mobile-screen-button w-8 text-sky-600"></i> Recharge Manager</button>
+            </div></details>
+            <details class="menu-group"><summary><i class="fa-solid fa-magnifying-glass-chart text-violet-600"></i> Reports & Tools</summary><div class="p-2 space-y-1">
+              <button onclick="switchTab('reports')" class="menu-btn w-full text-left hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-file-lines w-8 text-indigo-600"></i> Reports</button>
+              <button onclick="switchTab('graphicalView')" class="menu-btn w-full text-left hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-chart-pie w-8 text-pink-600"></i> Graphical Expense View</button>
+              <button onclick="switchTab('searchTab')" class="menu-btn w-full text-left hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-magnifying-glass w-8 text-sky-600"></i> Advanced Search</button>
+              <button onclick="switchTab('calculator')" class="menu-btn w-full text-left hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-calculator w-8 text-indigo-600"></i> Calculator</button>
+            </div></details>
+            <details class="menu-group"><summary><i class="fa-solid fa-shield-halved text-emerald-600"></i> Security & Settings</summary><div class="p-2 space-y-1">
+              <button onclick="openSecurityModal('pin')" class="menu-btn w-full text-left hover:bg-indigo-50 text-indigo-700 flex items-center"><i class="fa-solid fa-key w-8"></i> Change PIN via OTP</button>
+              <button onclick="openSecurityModal('mobile')" class="menu-btn w-full text-left hover:bg-indigo-50 text-indigo-700 flex items-center"><i class="fa-solid fa-mobile-screen w-8"></i> Change Mobile No. via OTP</button>
+              <button onclick="exportBackup()" class="menu-btn w-full text-left hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-download w-8"></i> Backup data (JSON)</button>
+              <button onclick="openTextRestoreModal()" class="menu-btn w-full text-left hover:bg-indigo-50 text-slate-700 flex items-center"><i class="fa-solid fa-paste w-8"></i> Restore from text</button>
+            </div></details>
         </div>
 
         <div class="p-3 border-t bg-slate-50 space-y-2">
@@ -151,6 +175,8 @@
         </div>
     </div>
     <div id="overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black opacity-50 z-40 hidden"></div>
+
+    <button id="quickExpenseFab" type="button" aria-label="Add Expense" title="Add Expense — drag to move" class="md:hidden rounded-full bg-rose-600 text-white font-extrabold" ><i class="fa-solid fa-plus" aria-hidden="true"></i><span class="fab-label">Add Expense</span></button>
 
     <!-- Main Content Container -->
     <main class="max-w-md mx-auto p-4">
@@ -511,6 +537,13 @@
 
         <!-- 10. REPORTS TAB -->
         <section id="tab-reports" class="tab-content hidden space-y-4">
+            <div class="bg-gradient-to-br from-indigo-50 to-sky-50 p-4 rounded-2xl border border-indigo-100 space-y-3">
+                <div><h3 class="font-extrabold text-base text-slate-900"><i class="fa-solid fa-chart-column text-indigo-600 mr-2"></i>Monthly / Annual Finance Report</h3><p class="text-xs text-slate-600 mt-1">Recurring payments ka estimate aur actual transaction history alag-alag dekhein.</p></div>
+                <div class="grid grid-cols-2 gap-2"><label class="text-xs font-semibold text-slate-700">Report view<select id="projectionPeriod" onchange="renderProjectionReport()" class="block w-full mt-1 border rounded-lg p-2 bg-white"><option value="monthly">Monthly average / estimate</option><option value="annual">Annual total / estimate</option></select></label><label class="text-xs font-semibold text-slate-700">Category<select id="projectionCategory" onchange="renderProjectionReport()" class="block w-full mt-1 border rounded-lg p-2 bg-white"><option value="all">All Categories (Combined)</option><option value="rd">RD Only</option><option value="mutualFund">Mutual Fund Only</option><option value="lic">LIC Only</option><option value="loan">Loan / EMI Only</option><option value="recharge">Recharge Only</option><option value="expense">Expense Only</option><option value="income">Income Only</option></select></label><label class="text-xs font-semibold text-slate-700 col-span-2">Year for actual transactions<select id="projectionYear" onchange="renderProjectionReport()" class="block w-full mt-1 border rounded-lg p-2 bg-white"></select></label></div>
+                <div id="projectionSummary" class="grid grid-cols-2 gap-2"></div>
+                <div class="bg-white rounded-xl border overflow-x-auto"><table class="w-full text-xs"><thead class="bg-slate-100"><tr><th class="text-left p-2">Category / Item</th><th class="text-right p-2">Monthly</th><th class="text-right p-2">Annual</th></tr></thead><tbody id="projectionRows"><tr><td colspan="3" class="p-3 text-slate-500">Loading report…</td></tr></tbody></table></div>
+                <p class="text-[11px] text-slate-500">Note: LIC/RD/MF/Loan estimates saved amount + frequency se bante hain. Daily Mutual Fund (Mon–Fri) estimate selected year ke weekdays ke hisaab se calculate hota hai; Saturday/Sunday exclude hain. Recharge estimate validity-days se annualize hota hai (₹500 / 84 days ≈ ₹181.55 monthly, ₹2,172.62 yearly). Historical recharge jisme amount/expense save nahi hai, uska estimate nahi banega. Actuals sirf saved transactions se calculate hote hain.</p>
+            </div>
             <div class="grid grid-cols-3 gap-1 bg-slate-100 p-1.5 rounded-xl text-xs font-bold text-center">
                 <button onclick="switchReportSubTab('combined')" id="subTabBtn-combined" class="py-2.5 bg-indigo-600 text-white rounded-lg shadow">Combined</button>
                 <button onclick="switchReportSubTab('expense')" id="subTabBtn-expense" class="py-2.5 text-slate-700 rounded-lg">Expense Only</button>
@@ -983,8 +1016,13 @@
                 <input type="hidden" id="editEmiIndex" value="-1">
                 <input type="text" id="emiItemName" placeholder="Item / Purchase Name" class="w-full border border-slate-300 rounded p-2 text-xs font-medium text-slate-900">
                 <input type="number" id="emiPrincipal" step="any" placeholder="Total Principal Amount (₹)" class="w-full border border-slate-300 rounded p-2 text-xs font-medium text-slate-900">
-                <input type="number" id="emiMonthlyAmt" step="any" placeholder="Monthly EMI Amount (₹)" class="w-full border border-slate-300 rounded p-2 text-xs font-medium text-slate-900">
-                <input type="number" id="emiPendingMonths" placeholder="No. of Pending EMIs" class="w-full border border-slate-300 rounded p-2 text-xs font-medium text-slate-900">
+                <label class="block text-[10px] font-semibold text-slate-600">Exact Monthly EMI (₹) — bank conversion ke baad enter/update karein</label>
+                <input type="number" id="emiMonthlyAmt" min="0" step="any" placeholder="Abhi pata nahi ho to blank chhodein" class="w-full border border-slate-300 rounded p-2 text-xs font-medium text-slate-900">
+                <label class="block text-[10px] font-semibold text-slate-600">Tenure (months) — pehle se pata hota hai</label>
+                <input type="number" id="emiPendingMonths" min="1" step="1" placeholder="EMI Tenure / Pending Months" class="w-full border border-slate-300 rounded p-2 text-xs font-medium text-slate-900">
+                <label class="block text-[10px] font-semibold text-slate-600">Conversion Fee Total (₹) — optional, GST included if bank quotes total</label>
+                <input type="number" id="emiConversionFee" min="0" step="any" placeholder="Optional fee; blank = ₹0" class="w-full border border-slate-300 rounded p-2 text-xs font-medium text-slate-900">
+                <p class="text-[10px] text-slate-500">Monthly EMI confirm na ho to blank/0 rakhein. Fee aur EMI bill mein ek-ek baar hi add honge.</p>
                 <div class="flex space-x-2">
                     <button onclick="saveNewCardEmi()" class="flex-1 bg-purple-600 text-white py-2 rounded font-bold text-xs shadow">Save EMI</button>
                     <button onclick="resetEmiForm()" class="bg-slate-300 text-slate-800 px-3 py-2 rounded font-bold text-xs">Cancel</button>
@@ -1490,6 +1528,43 @@
             </div>
         </section>
 
+        <!-- Added: Payment Reminders -->
+        <section id="tab-paymentReminders" class="tab-content hidden space-y-4">
+            <div class="bg-gradient-to-r from-rose-600 to-orange-500 text-white p-4 rounded-2xl shadow">
+                <h2 class="text-xl font-extrabold"><i class="fa-solid fa-bell mr-2"></i>Payment Reminder Center</h2>
+                <p class="text-sm mt-1 text-rose-50">LIC, RD, Mutual Fund, Loan/EMI, Credit Card ya kisi bhi bill ka due date track karein.</p>
+            </div>
+            <div class="bg-sky-50 border border-sky-200 rounded-2xl p-4">
+                <h3 class="font-bold text-sky-900 mb-1"><i class="fa-solid fa-mobile-screen-button mr-2"></i>Mobile / TV recharge</h3>
+                <p class="text-sm text-sky-800">Recharge ki details add ya renew karne ke liye <b>Menu → Recharge Manager</b> kholein. Recharge expiry se 7 din pehle se reminder yahin Upcoming & overdue mein dikhega.</p>
+                <button onclick="switchTab('rechargeManager')" class="mt-3 rounded-xl bg-sky-600 text-white px-4 py-2 text-sm font-bold">Open Recharge Manager</button>
+            </div>
+            <div class="bg-white rounded-2xl border p-4 shadow-sm"><div class="flex justify-between items-center mb-3"><h3 class="font-bold">Upcoming & overdue</h3><button onclick="requestReminderNotifications()" class="text-xs bg-indigo-100 text-indigo-700 px-3 py-2 rounded-lg font-bold">Enable notifications</button></div><p class="text-xs text-slate-500 mb-3">App ke andar alerts hamesha dikhte hain jab app kholte ho. Browser notification ke liye permission deni hogi.</p><div id="paymentReminderList" class="space-y-2"></div></div>
+        </section>
+        <!-- Dedicated Recharge Manager tab -->
+        <section id="tab-rechargeManager" class="tab-content hidden space-y-4">
+            <div class="bg-gradient-to-r from-sky-600 to-indigo-600 text-white p-4 rounded-2xl shadow">
+                <h2 class="text-xl font-extrabold"><i class="fa-solid fa-mobile-screen-button mr-2"></i>Recharge Manager</h2>
+                <p class="text-sm mt-1 text-sky-50">Har mobile number / JioTV connection ek baar add karein. Expiry se 7 din pehle reminder automatically Upcoming & overdue mein aayega.</p>
+            </div>
+            <div class="bg-white rounded-2xl border p-4 shadow-sm">
+                <h3 class="font-bold text-slate-900 mb-1">Connection / Recharge details</h3>
+                <p class="text-xs text-slate-500 mb-3">Naya recharge karoge to expense automatically add hoga. Purana recharge sirf validity/reminder ke liye add karna ho, to neeche “Historical record” select karein — expense nahi banega.</p>
+                <form id="rechargeForm" onsubmit="saveRecharge(event)" class="space-y-3">
+                    <input id="rcName" required maxlength="60" class="w-full border rounded-xl p-3 text-sm" placeholder="Naam (jaise Papa Jio / Living Room TV)">
+                    <div class="grid grid-cols-2 gap-2"><select id="rcType" class="border rounded-xl p-3 text-sm"><option>Mobile</option><option>JioTV</option><option>Other TV</option><option>Other</option></select><input id="rcNumber" class="border rounded-xl p-3 text-sm" maxlength="30" placeholder="Mobile number / Customer ID"></div>
+                    <div class="grid grid-cols-2 gap-2"><label class="text-xs text-slate-600">Recharge date<input id="rcDate" type="date" required class="block w-full border rounded-xl p-3 mt-1 text-sm"></label><label class="text-xs text-slate-600">Validity (days)<input id="rcDays" type="number" min="1" max="2000" required value="84" class="block w-full border rounded-xl p-3 mt-1 text-sm"></label></div>
+                    <div class="grid grid-cols-2 gap-2"><input id="rcAmount" type="number" min="0" step="0.01" required class="border rounded-xl p-3 text-sm" placeholder="Recharge amount ₹ (historical mein optional)"><select id="rcMode" onchange="toggleRechargePaymentSource()" class="border rounded-xl p-3 text-sm"><option value="cash">Cash</option><option value="card">Card (Credit Card)</option><option value="account">Account (Bank Account)</option></select></div>
+                    <label class="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm"><input id="rcHistoricalOnly" type="checkbox" onchange="toggleHistoricalRechargeMode()" class="mt-1"><span><b>Purana recharge / Historical record</b><span class="block text-xs text-slate-600 mt-1">Pehle se kiye gaye recharge ka actual date aur validity enter karein. Sirf connection aur expiry save hogi; expense entry nahi banegi.</span></span></label>
+                    <div id="rcCardContainer" class="hidden"><label class="block text-xs text-slate-600">Select Credit Card<select id="rcCardSelect" class="block w-full border rounded-xl p-3 mt-1 text-sm"></select></label></div>
+                    <div id="rcAccountContainer" class="hidden"><label class="block text-xs text-slate-600">Select Bank Account<select id="rcAccountSelect" class="block w-full border rounded-xl p-3 mt-1 text-sm"></select></label></div>
+                    <button id="rcSaveButton" class="w-full rounded-xl bg-sky-600 text-white py-3 font-bold" type="submit">Save recharge + add expense</button>
+                    <button type="button" onclick="resetRechargeForm()" class="w-full rounded-xl border border-slate-300 py-2 text-sm font-semibold">Clear form</button>
+                </form>
+            </div>
+            <div class="bg-white rounded-2xl border p-4 shadow-sm"><div class="flex items-center justify-between gap-2 mb-3"><h3 class="font-bold">Saved connections</h3><span id="rechargeCount" class="text-xs text-slate-500">0 connections</span></div><div id="rechargeAlerts" class="space-y-2"></div></div>
+            <div class="bg-sky-50 border border-sky-200 rounded-xl p-3 text-xs text-sky-900">Payment mode: Cash / Card / Account. Card ya Account select karne par related card/account bhi choose karein, taaki transaction sahi account se linked ho.</div>
+        </section>
 
     <!-- Application JavaScript -->
     <script>
@@ -1503,6 +1578,8 @@
             transactions: [],
             specialTransactions: [],
             borrowedTransactions: [],
+            paymentReminders: [],
+            rechargeRecords: [],
             customMenus: [],
             openingCash: 0
         };
@@ -1516,7 +1593,7 @@
 
         let currentReportSubTab = 'combined';
         let isDeleteLocked = true;
-        let isPrivacyHidden = true;
+        let isPrivacyHidden = localStorage.getItem('financePrivacyHidden') !== 'false';
         let pendingDeleteAction = null;
         let lastDeletedBackup = null;
         let undoTimeout = null;
@@ -1535,14 +1612,36 @@
             Others: ["General"]
         };
 
+        // Auto-lock after inactivity; this protects the open screen, not the underlying localStorage file.
+        const SECURITY_IDLE_MS = 5 * 60 * 1000;
+        let securityIdleTimer = null;
+        function lockFinanceScreen(reason) {
+            const screen = document.getElementById('pinLockScreen');
+            if (!screen) return;
+            screen.classList.remove('hidden');
+            ['pin1','pin2','pin3','pin4'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+            const msg=document.getElementById('pinErrorMsg'); if(msg){msg.classList.add('hidden'); if(reason) msg.textContent=reason; else msg.textContent='Galat PIN! Punah prayas karein.';}
+        }
+        function resetSecurityIdleTimer() {
+            if (securityIdleTimer) clearTimeout(securityIdleTimer);
+            if (!document.getElementById('pinLockScreen')?.classList.contains('hidden')) return;
+            securityIdleTimer = setTimeout(() => lockFinanceScreen('Security ke liye app auto-lock ho gaya. PIN daalein.'), SECURITY_IDLE_MS);
+        }
+        ['click','keydown','touchstart','scroll'].forEach(evt => document.addEventListener(evt, resetSecurityIdleTimer, {passive:true}));
+        document.addEventListener('visibilitychange', () => { if(document.hidden) lockFinanceScreen('App background mein gaya tha. Dobara kholne ke liye PIN daalein.'); });
+
         window.onload = function() {
             setTodayDates();
+            const rcDate=document.getElementById('rcDate'); if(rcDate)rcDate.value=localISODate(new Date());
             checkAndGenerateCreditCardBills();
             initApp();
             updateExpenseCategories();
             toggleSpecialTypeForm();
             checkAndRunDailyMutualFunds();
             checkAutoBackupReminder();
+            appData.paymentReminders = Array.isArray(appData.paymentReminders) ? appData.paymentReminders : [];
+            appData.rechargeRecords = Array.isArray(appData.rechargeRecords) ? appData.rechargeRecords : [];
+            renderPaymentReminders(); renderRechargeManager(); showDueReminderSummary();
             selectedCalendarDateStr = `${currentCalendarDate.getFullYear()}-${String(currentCalendarDate.getMonth()+1).padStart(2,'0')}-${String(currentCalendarDate.getDate()).padStart(2,'0')}`;
             switchTab('addExpense');
         };
@@ -1568,6 +1667,7 @@
 
             if (enteredPin === correctPin) {
                 document.getElementById('pinLockScreen').classList.add('hidden');
+                resetSecurityIdleTimer();
             } else {
                 document.getElementById('pinErrorMsg').classList.remove('hidden');
                 document.getElementById('pin1').value = '';
@@ -1857,7 +1957,7 @@
                 <div class="flex justify-between items-center bg-purple-50 p-2 rounded border border-purple-200">
                     <div>
                         <p class="font-bold text-purple-950">${e.itemName}</p>
-                        <p class="text-[10px] text-purple-700">Prin: ₹${e.totalPrincipal} | EMI: ₹${e.monthlyAmt}/mo | Pending: <strong>${e.pendingMonths} mos</strong></p>
+                        <p class="text-[10px] text-purple-700">Prin: ₹${Number(e.totalPrincipal || 0).toFixed(2)} | EMI: ${Number(e.monthlyAmt || 0) > 0 ? '₹' + Number(e.monthlyAmt).toFixed(2) + '/mo' : 'Bank confirmation pending'} | Tenure/Pending: <strong>${e.pendingMonths} mos</strong> | Fee: ₹${Number(e.conversionFee || 0).toFixed(2)}${e.feePending && Number(e.conversionFee || 0) > 0 ? ' (not billed yet)' : ''}</p>
                     </div>
                     <div class="flex space-x-1">
                         <button onclick="editCardEmi('${cardName}', ${idx})" class="text-indigo-600 hover:text-indigo-800 text-xs px-1.5" title="Edit EMI"><i class="fa-solid fa-pen-to-square"></i></button>
@@ -1873,8 +1973,11 @@
             let editIdx = parseInt(document.getElementById('editEmiIndex').value);
             let itemName = document.getElementById('emiItemName').value.trim();
             let totalPrincipal = parseFloat(document.getElementById('emiPrincipal').value);
-            let monthlyAmt = parseFloat(document.getElementById('emiMonthlyAmt').value);
+            let monthlyInput = document.getElementById('emiMonthlyAmt').value.trim();
+            let monthlyAmt = monthlyInput === '' ? 0 : parseFloat(monthlyInput);
             let pendingMonths = parseInt(document.getElementById('emiPendingMonths').value);
+            let feeInput = document.getElementById('emiConversionFee').value.trim();
+            let conversionFee = feeInput === '' ? 0 : parseFloat(feeInput);
 
             if(!itemName) {
                 alert('Kripya Item / Purchase Name darj karein!');
@@ -1884,8 +1987,12 @@
                 alert('Kripya valid Principal Amount (₹) darj karein!');
                 return;
             }
-            if(isNaN(monthlyAmt) || monthlyAmt <= 0) {
-                alert('Kripya valid Monthly EMI Amount (₹) darj karein!');
+            if(!Number.isFinite(monthlyAmt) || monthlyAmt < 0) {
+                alert('Monthly EMI blank/0 ho sakti hai jab tak bank confirm na kare.');
+                return;
+            }
+            if(!Number.isFinite(conversionFee) || conversionFee < 0) {
+                alert('Kripya valid Conversion Fee (₹) darj karein ya blank chhodein.');
                 return;
             }
             if(isNaN(pendingMonths) || pendingMonths <= 0) {
@@ -1896,9 +2003,10 @@
             if(!appData.cardEmis[cardName]) appData.cardEmis[cardName] = [];
 
             if(editIdx >= 0) {
-                appData.cardEmis[cardName][editIdx] = { itemName, totalPrincipal, monthlyAmt, pendingMonths };
+                let oldEmi = appData.cardEmis[cardName][editIdx] || {};
+                appData.cardEmis[cardName][editIdx] = { ...oldEmi, itemName, totalPrincipal, monthlyAmt, pendingMonths, conversionFee, feePending: oldEmi.feePending !== undefined ? oldEmi.feePending : conversionFee > 0 };
             } else {
-                appData.cardEmis[cardName].push({ itemName, totalPrincipal, monthlyAmt, pendingMonths });
+                appData.cardEmis[cardName].push({ itemName, totalPrincipal, monthlyAmt, pendingMonths, conversionFee, feePending: conversionFee > 0, monthlyConfirmed: monthlyAmt > 0 });
             }
             
             resetEmiForm();
@@ -1913,8 +2021,9 @@
             document.getElementById('emiFormTitle').innerText = "Edit EMI Plan";
             document.getElementById('emiItemName').value = e.itemName;
             document.getElementById('emiPrincipal').value = e.totalPrincipal;
-            document.getElementById('emiMonthlyAmt').value = e.monthlyAmt;
+            document.getElementById('emiMonthlyAmt').value = Number(e.monthlyAmt || 0) > 0 ? e.monthlyAmt : '';
             document.getElementById('emiPendingMonths').value = e.pendingMonths;
+            document.getElementById('emiConversionFee').value = Number(e.conversionFee || 0) > 0 ? e.conversionFee : '';
         }
 
         function resetEmiForm() {
@@ -1924,6 +2033,7 @@
             document.getElementById('emiPrincipal').value = '';
             document.getElementById('emiMonthlyAmt').value = '';
             document.getElementById('emiPendingMonths').value = '';
+            document.getElementById('emiConversionFee').value = '';
         }
 
         function removeCardEmi(cardName, idx) {
@@ -1956,7 +2066,7 @@
                                 let td = new Date(t.date);
                                 if(td >= cycleStart && td < cycleEnd) {
                                     if(t.type === 'expense') unbilledSum += t.amount;
-                                    else if(t.type === 'income') unbilledSum -= t.amount;
+                                    else if(t.type === 'income') unbilledSum -= Math.max(0, Number(t.amount || 0) - Number(t.cardDueApplied || 0));
                                 }
                             }
                         });
@@ -1973,28 +2083,43 @@
 
                         let cardEmis = (appData.cardEmis && appData.cardEmis[c.name]) ? appData.cardEmis[c.name] : [];
                         let monthlyEmisTotal = cardEmis.reduce((sum, e) => {
-                            if(e.pendingMonths > 0) {
-                                e.pendingMonths -= 1;
-                                e.totalPrincipal = Math.max(0, e.totalPrincipal - e.monthlyAmt);
-                                return sum + e.monthlyAmt;
+                            let add = 0;
+                            // Conversion fee is a one-time bill item; feePending prevents duplicate billing.
+                            if(e.feePending && Number(e.conversionFee || 0) > 0) {
+                                add += Number(e.conversionFee);
+                                e.feePending = false;
+                                e.feeBilledAtCycle = billCycleKey;
                             }
-                            return sum;
+                            // Do not bill or decrement the EMI tenure until the bank-confirmed monthly amount exists.
+                            if(Number(e.pendingMonths || 0) > 0 && Number(e.monthlyAmt || 0) > 0) {
+                                add += Number(e.monthlyAmt);
+                                e.pendingMonths -= 1;
+                                e.totalPrincipal = Math.max(0, Number(e.totalPrincipal || 0) - Number(e.monthlyAmt || 0));
+                            }
+                            return sum + add;
                         }, 0);
 
-                        let existingDue = c.dueAmount || 0;
-                        c.dueAmount = existingDue + unbilledSum + monthlyEmisTotal;
+                        // Apply any prior overpayment credit to the newly generated bill.
+                        // This is a liability/limit adjustment only; never create or alter expense transactions.
+                        let existingDue = Math.max(0, Number(c.dueAmount || 0));
+                        let grossNewDue = Math.max(0, existingDue + unbilledSum + monthlyEmisTotal);
+                        let priorCredit = Math.max(0, Number(c.excessCredit || 0));
+                        let creditAppliedToNextBill = Math.min(priorCredit, grossNewDue);
+                        c.dueAmount = Math.max(0, grossNewDue - creditAppliedToNextBill);
+                        c.excessCredit = Math.max(0, priorCredit - creditAppliedToNextBill);
                         c.lastGeneratedCycle = billCycleKey;
                         c.billSeen = false;
                     }
                 }
 
                 let cardEmis = (appData.cardEmis && appData.cardEmis[c.name]) ? appData.cardEmis[c.name] : [];
-                let currentEmisSum = cardEmis.reduce((sum, e) => e.pendingMonths > 0 ? sum + e.monthlyAmt : sum, 0);
+                let currentEmisSum = cardEmis.reduce((sum, e) => e.pendingMonths > 0 && Number(e.monthlyAmt || 0) > 0 ? sum + Number(e.monthlyAmt) : sum, 0);
                 let finalCardDue = (c.dueAmount || 0) + currentEmisSum;
 
                 totalCardsDue += finalCardDue;
             });
 
+            if(typeof saveData === 'function') saveData();
             if(document.getElementById('totalCardsDueBanner')) {
                 document.getElementById('totalCardsDueBanner').innerText = isPrivacyHidden ? '₹****' : `₹${totalCardsDue.toFixed(2)}`;
             }
@@ -2022,7 +2147,7 @@
                     let td = new Date(t.date);
                     if(td >= cycleStart) {
                         if(t.type === 'expense') unbilled += t.amount;
-                        else if(t.type === 'income') unbilled -= t.amount;
+                        else if(t.type === 'income') unbilled -= Math.max(0, Number(t.amount || 0) - Number(t.cardDueApplied || 0));
                     }
                 }
             });
@@ -2069,6 +2194,7 @@
 
         function togglePrivacyMode() {
             isPrivacyHidden = !isPrivacyHidden;
+            localStorage.setItem('financePrivacyHidden', String(isPrivacyHidden));
             const btn = document.getElementById('privacyToggleBtn');
             const icon = document.getElementById('privacyIcon');
             
@@ -2081,6 +2207,7 @@
             }
             checkAndGenerateCreditCardBills();
             renderMasterLists();
+            if(document.getElementById('rcDate') && !document.getElementById('rcDate').value) document.getElementById('rcDate').value=localISODate(new Date());
             updateDashboard();
         }
 
@@ -2128,7 +2255,7 @@
             if(type === 'transaction') {
                 let t = appData.transactions.find(x => x.id === id);
                 if(!t) return;
-                details = `Transaction: <strong>${t.category || t.source}</strong><br>Amount: <strong class="text-rose-600">₹${t.amount}</strong><br>Date: ${t.date}`;
+                details = `Transaction: <strong>${t.category || t.source}</strong><br>Amount: <strong class="text-rose-600">₹${t.amount}</strong><br>Date: ${t.date}${t.rechargeRecordId ? '<br><span class="text-sky-700">Recharge reminder record will remain saved; this expense will be removed and its source balance recalculated.</span>' : ''}`;
             } else if(type === 'special') {
                 let s = appData.specialTransactions.find(x => x.id === id);
                 if(!s) return;
@@ -2546,8 +2673,9 @@
                     amount: amount,
                     mode: 'Cash',
                     entityName: 'Formality',
+                    noBalanceDeduction: true,
                     date: date,
-                    note: `Formality payment update (No bank deduction)`
+                    note: `Formality payment update (No deduction from bank, card, or cash)`
                 });
             }
 
@@ -2763,36 +2891,15 @@
             let card = appData.cards.find(c => c.name === cardName);
             if(!card) return alert('Credit Card not found');
 
-            let dueAmt = card.dueAmount || 0;
-            let unbilled = Math.max(0, getCardUnbilledAmount(cardName));
-            let remainingPay = payAmount;
-
-            if(remainingPay <= dueAmt) {
-                card.dueAmount = dueAmt - remainingPay;
-                remainingPay = 0;
-            } else {
-                remainingPay -= dueAmt;
-                card.dueAmount = 0;
-                
-                if(remainingPay > 0 && unbilled > 0) {
-                    let adjustUnbilled = Math.min(remainingPay, unbilled);
-                    appData.transactions.push({
-                        id: Date.now() + 1,
-                        type: 'income',
-                        source: 'Card Excess Bill Adjustment',
-                        category: 'Card Adjustment',
-                        amount: adjustUnbilled,
-                        mode: 'card',
-                        entityName: cardName,
-                        date: date,
-                        note: `Excess payment / refund adjustment towards unbilled expenses for ${cardName}`
-                    });
-                    remainingPay -= adjustUnbilled;
-                }
-
-                if(remainingPay > 0) {
-                    card.excessCredit = (card.excessCredit || 0) + remainingPay;
-                }
+            // First settle the already-generated due. Any overpayment becomes card credit
+            // for the next bill/available-limit calculation. Do NOT create an income/expense
+            // transaction for the excess: payment is a liability settlement, not spending.
+            let dueAmt = Math.max(0, Number(card.dueAmount || 0));
+            let appliedToCurrentDue = Math.min(payAmount, dueAmt);
+            card.dueAmount = Math.max(0, dueAmt - appliedToCurrentDue);
+            let remainingPay = Math.max(0, payAmount - appliedToCurrentDue);
+            if(remainingPay > 0) {
+                card.excessCredit = Math.max(0, Number(card.excessCredit || 0)) + remainingPay;
             }
 
             let entityDesc = payMode === 'Account' ? `${bankName} &rarr; ${cardName}` : (payMode === 'Cash' ? `Cash &rarr; ${cardName}` : `Refund / Online Adjustment &rarr; ${cardName}`);
@@ -2812,7 +2919,7 @@
 
             closeModal('ccPayModal');
             saveData();
-            alert(`Credit card payment / refund of ₹${payAmount} via ${payMode} successfully recorded and adjusted!`);
+            alert(`Credit card payment of ₹${payAmount} via ${payMode} recorded. Current due settled first; excess is saved as card credit for the next bill. Payment source balance is adjusted, and expense transactions are unchanged.`);
         }
 
         function openCashModal() {
@@ -2884,6 +2991,14 @@
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('overlay');
+            const isOpening = sidebar.classList.contains('-translate-x-full');
+            // Every time the navigation drawer opens, keep all groups collapsed.
+            // The user can expand whichever group they need after opening the menu.
+            if (isOpening) {
+                document.querySelectorAll('#menuList details.menu-group').forEach(group => {
+                    group.open = false;
+                });
+            }
             sidebar.classList.toggle('-translate-x-full');
             overlay.classList.toggle('hidden');
         }
@@ -3003,6 +3118,8 @@
                 lic: 'LIC',
                 rd: 'RD',
                 calendarView: 'Calendar View',
+                paymentReminders: 'Payment Reminders',
+                rechargeManager: 'Recharge Manager',
                 reports: 'Report',
                 graphicalView: 'Graphical View',
                 searchTab: 'Advanced Search',
@@ -3025,6 +3142,8 @@
             if(tabId === 'rd') populateBankSelectForModal('rdBankSelect', false);
             if(tabId === 'specialTransactions') toggleSpecialTypeForm();
             if(tabId === 'calendarView') renderCalendarView();
+            if(tabId === 'paymentReminders') renderPaymentReminders();
+            if(tabId === 'rechargeManager') { renderRechargeManager(); toggleRechargePaymentSource(); toggleHistoricalRechargeMode(); }
         }
 
         function switchReportSubTab(subTab) {
@@ -3425,6 +3544,8 @@
             });
             (appData.specialTransactions || []).forEach(t => {
                 if (!['cash','Cash'].includes(t.mode)) return;
+                // Keep wallet statement consistent with dashboard: no-deduction/formality records do not change cash.
+                if (t.noBalanceDeduction || String(t.type || '').includes('Formality Payment') || String(t.note || '').includes('No bank deduction') || String(t.note || '').includes('No deduction from bank, card, or cash')) return;
                 const inflow = ['Returned / Settled','Bank Flow In (Non-Income)'].includes(t.type);
                 const amount = Math.abs(Number(t.amount)||0);
                 rows.push({date:t.date || t.createdAt || '', amount, delta:inflow?amount:-amount, title:t.note || t.party || t.personName || t.entityName || t.type || 'Wallet transaction', type:t.type || 'Wallet transaction', id:Number(t.id)||0});
@@ -3502,6 +3623,7 @@
                 }
             });
             appData.specialTransactions.forEach(s => {
+                if(s.noBalanceDeduction || String(s.type||'').includes('Formality Payment') || String(s.note||'').includes('No bank deduction')) return;
                 if(s.mode === 'Cash' || s.mode === 'cash') {
                     if(s.type === 'Returned / Settled' || s.type === 'Bank Flow In (Non-Income)') cashBal += s.amount;
                     else cashBal -= s.amount;
@@ -3538,6 +3660,77 @@
             return total;
         }
 
+        const INSTALLMENT_TRACKING_START_DATE = '2026-10-14';
+
+        function installmentBaselineKey(itemName, type, year, month) {
+            return `${type}::${String(itemName).trim().toLowerCase()}::${year}-${String(month + 1).padStart(2, '0')}`;
+        }
+
+        function setInitialInstallmentStatus(itemName, type, status, year, month) {
+            if (!appData.installmentBaselineStatuses || typeof appData.installmentBaselineStatuses !== 'object') appData.installmentBaselineStatuses = {};
+            const key = installmentBaselineKey(itemName, type, year, month);
+            appData.installmentBaselineStatuses[key] = { status, updatedAt: localISODate(new Date()) };
+            saveData();
+        }
+
+        function getCurrentMonthInstallmentStatus(itemName, type, dueDay, dueMonth = null, frequency = 'monthly', expectedAmount = null) {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const todayISO = localISODate(now);
+            const monthly = frequency !== 'yearly';
+            const targetMonth = monthly ? month : Number(dueMonth ?? 0);
+            const periodYear = year;
+            const matches = [];
+            (appData.transactions || []).forEach(t => {
+                if (t.category === itemName && t.type === 'investment_deduction' && t.date && (expectedAmount == null || Math.abs((Number(t.amount)||0)-Number(expectedAmount)) < 0.005)) {
+                    const dateStr = String(t.date).slice(0,10);
+                    const d = new Date(dateStr + 'T12:00:00');
+                    if (frequency === 'daily' ? dateStr === todayISO : (d.getFullYear() === periodYear && (monthly ? d.getMonth() === targetMonth : d.getMonth() === Number(dueMonth)))) matches.push({date:dateStr, amount:Number(t.amount)||0});
+                }
+            });
+            (appData.specialTransactions || []).forEach(t => {
+                const expected = type + ' Formality Payment';
+                if (t.party === itemName && t.type === expected && t.date && (expectedAmount == null || Math.abs((Number(t.amount)||0)-Number(expectedAmount)) < 0.005)) {
+                    const dateStr = String(t.date).slice(0,10);
+                    const d = new Date(dateStr + 'T12:00:00');
+                    if (frequency === 'daily' ? dateStr === todayISO : (d.getFullYear() === periodYear && (monthly ? d.getMonth() === targetMonth : d.getMonth() === Number(dueMonth)))) matches.push({date:dateStr, amount:Number(t.amount)||0});
+                }
+            });
+            matches.sort((a,b) => a.date.localeCompare(b.date));
+            const paidTotal = matches.reduce((sum,x)=>sum+x.amount,0);
+            const lastDate = matches.length ? matches[matches.length-1].date : '';
+            if (frequency === 'daily') {
+                const isWeekday = now.getDay() !== 0 && now.getDay() !== 6;
+                if (type === 'Mutual Fund' && !isWeekday) {
+                    return `<p class="text-xs font-semibold mt-1 text-slate-600">📅 No payment scheduled today (weekend)</p>`;
+                }
+                if (matches.length) return `<p class="text-xs font-bold mt-1 text-emerald-700">✓ PAID TODAY · ${lastDate} · ₹${paidTotal.toLocaleString('en-IN')}</p>`;
+                return `<p class="text-xs font-bold mt-1 text-amber-700">◷ PENDING · Today's payment not recorded</p>`;
+            }
+            if (matches.length) return `<p class="text-xs font-bold mt-1 text-emerald-700">✓ PAID THIS ${frequency === 'yearly' ? 'YEAR' : 'MONTH'} · ${lastDate} · ₹${paidTotal.toLocaleString('en-IN')}</p>`;
+
+            const due = monthly
+                ? new Date(year, month, Math.min(Math.max(1, Number(dueDay)||1), new Date(year, month+1, 0).getDate()))
+                : new Date(year, Math.max(0, Math.min(11, Number(dueMonth ?? 0))), Math.min(Math.max(1, Number(dueDay)||1), new Date(year, Number(dueMonth ?? 0)+1, 0).getDate()));
+            const periodKey = installmentBaselineKey(itemName, type, periodYear, targetMonth);
+            const baselineStatus = appData.installmentBaselineStatuses && appData.installmentBaselineStatuses[periodKey];
+            const dueISO = `${due.getFullYear()}-${String(due.getMonth()+1).padStart(2,'0')}-${String(due.getDate()).padStart(2,'0')}`;
+            const wasDueBeforeTracking = dueISO < INSTALLMENT_TRACKING_START_DATE;
+
+            if (wasDueBeforeTracking && !baselineStatus) {
+                return `<div class="mt-1 rounded-lg border border-indigo-200 bg-indigo-50 p-2"><p class="text-xs font-bold text-indigo-800">ℹ INITIAL STATUS REQUIRED · App tracking started 14 Oct 2026</p><p class="text-[11px] text-indigo-700 mt-1">App shuru hone se pehle ki payment confirm karein:</p><div class="flex flex-wrap gap-1.5 mt-2"><button onclick="setInitialInstallmentStatus(${JSON.stringify(itemName).replace(/"/g, '&quot;')}, ${JSON.stringify(type).replace(/"/g, '&quot;')}, 'paid', ${periodYear}, ${targetMonth})" class="text-[11px] bg-emerald-600 text-white rounded-md px-2 py-1 font-bold">Already Paid</button><button onclick="setInitialInstallmentStatus(${JSON.stringify(itemName).replace(/"/g, '&quot;')}, ${JSON.stringify(type).replace(/"/g, '&quot;')}, 'pending', ${periodYear}, ${targetMonth})" class="text-[11px] bg-rose-600 text-white rounded-md px-2 py-1 font-bold">Still Pending</button></div></div>`;
+            }
+            if (baselineStatus && baselineStatus.status === 'paid') {
+                return `<p class="text-xs font-bold mt-1 text-emerald-700">✓ MARKED ALREADY PAID · Before app start (14 Oct 2026)</p>`;
+            }
+            if (baselineStatus && baselineStatus.status === 'pending' && now > due) {
+                return `<p class="text-xs font-bold mt-1 text-rose-700">⚠ OVERDUE · Confirmed pending in initial setup</p><button onclick="setInitialInstallmentStatus(${JSON.stringify(itemName).replace(/"/g, '&quot;')}, ${JSON.stringify(type).replace(/"/g, '&quot;')}, 'paid', ${periodYear}, ${targetMonth})" class="text-[11px] mt-1 bg-emerald-600 text-white rounded-md px-2 py-1">Mark already paid instead</button>`;
+            }
+            if (now > due) return `<p class="text-xs font-bold mt-1 text-rose-700">⚠ OVERDUE · Current ${monthly?'month':'year'} payment pending</p>`;
+            return `<p class="text-xs font-bold mt-1 text-amber-700">◷ PENDING · Current ${monthly?'month':'year'} payment not recorded</p>`;
+        }
+
         function isInstallmentPaidThisMonth(itemName, dueDay, dueMonth = null, frequency = 'monthly') {
             let now = new Date();
             let curYear = now.getFullYear();
@@ -3554,6 +3747,33 @@
                 }
                 return false;
             });
+        }
+
+        // Apply card income/refunds to the already-generated bill first. Any excess remains
+        // as a credit against the next (unbilled) cycle and is excluded from double counting.
+        function applyCardIncomeToGeneratedBill(transaction) {
+            if (!transaction || transaction.type !== 'income' || !['card', 'Card'].includes(transaction.mode)) return;
+            // Online-platform refunds entered through Add Income belong to the next/unbilled
+            // cycle, not to an already-generated bill. getCardUnbilledAmount() and bill-cycle
+            // generation subtract this income from unbilled card expenses automatically.
+            if (String(transaction.source || '').trim().toLowerCase() === 'refund from online platform') return;
+            const card = appData.cards.find(c => c.name === transaction.entityName);
+            if (!card) return;
+            const billingDay = Number(card.billingDay || 16);
+            const txDate = new Date(`${transaction.date}T12:00:00`);
+            if (isNaN(txDate.getTime())) return;
+            const y = txDate.getFullYear(), m = txDate.getMonth();
+            // The bill generated on/after this billing day covers the cycle ending on that day.
+            const cycleKey = `${y}-${m}-${billingDay}`;
+            if (card.lastGeneratedCycle !== cycleKey || txDate.getDate() < billingDay) return;
+            const amount = Math.max(0, Number(transaction.amount || 0));
+            const applied = Math.min(Math.max(0, Number(card.dueAmount || 0)), amount);
+            if (applied > 0) {
+                card.dueAmount = Math.max(0, Number(card.dueAmount || 0) - applied);
+                transaction.cardDueApplied = applied;
+            }
+            // Any amount beyond the current due stays as unbilled-cycle income in the transaction ledger.
+            // It is applied by bill generation, so do not also add it to excessCredit (would double count).
         }
 
         function handleIncomeSubmit(e) {
@@ -3587,9 +3807,11 @@
                 return;
             }
 
-            appData.transactions.push({
+            const incomeTransaction = {
                 id: Date.now(), type: 'income', source, location: 'General', category: source, amount, mode, entityName, date, note
-            });
+            };
+            applyCardIncomeToGeneratedBill(incomeTransaction);
+            appData.transactions.push(incomeTransaction);
             alert('Income saved successfully!');
             document.getElementById('incomeForm').reset();
             setTodayDates();
@@ -3644,6 +3866,29 @@
             updateDashboard();
             onReportFilterTypeChange();
         }
+
+        // Automatically refresh installment labels when the calendar month/year changes,
+        // including when the app returns from the background after a month boundary.
+        let installmentStatusCalendarKey = (() => {
+            const d = new Date();
+            return localISODate(d);
+        })();
+        function refreshInstallmentStatusOnCalendarChange() {
+            const d = new Date();
+            const key = localISODate(d);
+            if (key !== installmentStatusCalendarKey) {
+                installmentStatusCalendarKey = key;
+                if (typeof renderMasterLists === 'function' && typeof appData !== 'undefined' && appData) {
+                    renderMasterLists();
+                }
+            }
+        }
+        // Check periodically while open, and immediately on resume/focus.
+        setInterval(refreshInstallmentStatusOnCalendarChange, 60 * 1000);
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) refreshInstallmentStatusOnCalendarChange();
+        });
+        window.addEventListener('focus', refreshInstallmentStatusOnCalendarChange);
 
         function renderMasterLists() {
             const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -3736,6 +3981,7 @@
                         <p class="text-xs text-amber-700 font-semibold mt-0.5"><i class="fa-regular fa-calendar-days mr-1"></i> Due Date: ${dueText}</p>
                     </div>
                     <div class="flex items-center space-x-1.5">
+                        <button onclick="openIndividualStatement('Loan', decodeURIComponent('${encodeURIComponent(l.name)}'))" class="bg-slate-100 text-slate-700 px-2 py-1 rounded text-xs font-bold" title="View loan statement"><i class="fa-solid fa-file-lines mr-1"></i>Statement</button>
                         <button onclick="openMasterEditModal('loans', ${l.id})" class="edit-btn-guard text-indigo-600 hover:bg-indigo-100 px-2 py-1 rounded text-xs font-bold transition" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
                         <button onclick="requestSafeDelete('master', ${l.id}, 'loans')" class="delete-btn-guard text-slate-400 hover:text-rose-600 p-2"><i class="fa-solid fa-trash text-sm"></i></button>
                     </div>
@@ -3752,8 +3998,10 @@
                         <p class="font-bold text-slate-900">${m.name} <span class="text-xs bg-teal-100 text-teal-800 px-1.5 py-0.5 rounded font-semibold">${m.frequency || 'monthly'}</span></p>
                         <p class="text-xs text-slate-600 font-medium">Amount: ₹${amt} | <strong class="text-teal-800 font-bold">Total: ₹${currentPrin}</strong></p>
                         <p class="text-xs text-teal-700 font-semibold mt-0.5"><i class="fa-regular fa-calendar-days mr-1"></i> ${freqText}</p>
+                        ${getCurrentMonthInstallmentStatus(m.name, 'Mutual Fund', m.dueDay, m.dueMonth, m.frequency || 'monthly', m.amount)}
                     </div>
                     <div class="flex items-center space-x-1.5">
+                        <button onclick="openIndividualStatement('Mutual Fund', decodeURIComponent('${encodeURIComponent(m.name)}'), ${Number(m.amount)||0}, decodeURIComponent('${encodeURIComponent(m.frequency||'monthly')}'))" class="bg-slate-100 text-slate-700 px-2 py-1.5 rounded-lg font-bold text-xs" title="View MF statement"><i class="fa-solid fa-file-lines mr-1"></i>Statement</button>
                         <button onclick="openInvestmentPayModal('${m.name}', ${m.amount}, 'Mutual Fund')" class="bg-teal-600 hover:bg-teal-700 text-white px-2.5 py-1.5 rounded-lg font-bold text-xs shadow"><i class="fa-solid fa-indian-rupee-sign mr-1"></i> Pay</button>
                         <button onclick="openMasterEditModal('mfs', ${m.id})" class="edit-btn-guard text-indigo-600 hover:bg-indigo-100 px-2 py-1 rounded text-xs font-bold transition" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
                         <button onclick="requestSafeDelete('master', ${m.id}, 'mfs')" class="delete-btn-guard text-slate-400 hover:text-rose-600 p-1.5"><i class="fa-solid fa-trash text-sm"></i></button>
@@ -3772,6 +4020,7 @@
                         <p class="text-xs text-cyan-700 font-semibold mt-0.5"><i class="fa-regular fa-calendar-days mr-1"></i> Due Date: ${dueText}</p>
                     </div>
                     <div class="flex items-center space-x-1.5">
+                        <button onclick="openIndividualStatement('LIC', decodeURIComponent('${encodeURIComponent(l.name)}'), ${Number(l.amount)||0}, decodeURIComponent('${encodeURIComponent(l.frequency||'monthly')}'))" class="bg-slate-100 text-slate-700 px-2 py-1.5 rounded-lg font-bold text-xs" title="View LIC statement"><i class="fa-solid fa-file-lines mr-1"></i>Statement</button>
                         <button onclick="openInvestmentPayModal('${l.name}', ${l.amount}, 'LIC')" class="bg-cyan-600 hover:bg-cyan-700 text-white px-2.5 py-1.5 rounded-lg font-bold text-xs shadow"><i class="fa-solid fa-indian-rupee-sign mr-1"></i> Pay</button>
                         <button onclick="openMasterEditModal('lics', ${l.id})" class="edit-btn-guard text-indigo-600 hover:bg-indigo-100 px-2 py-1 rounded text-xs font-bold transition" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
                         <button onclick="requestSafeDelete('master', ${l.id}, 'lics')" class="delete-btn-guard text-slate-400 hover:text-rose-600 p-2"><i class="fa-solid fa-trash text-sm"></i></button>
@@ -3789,8 +4038,10 @@
                         <p class="font-bold text-slate-900">${r.name}</p>
                         <p class="text-xs text-slate-600 font-medium">Amt: ₹${amt} | <strong class="text-orange-800 font-bold">Total: ₹${currentPrin}</strong></p>
                         <p class="text-xs text-orange-700 font-semibold mt-0.5"><i class="fa-regular fa-calendar-days mr-1"></i> Due Date: ${dueText}</p>
+                        ${getCurrentMonthInstallmentStatus(r.name, 'RD', r.dueDay, r.dueMonth, r.frequency || 'monthly', r.amount)}
                     </div>
                     <div class="flex items-center space-x-1.5">
+                        <button onclick="openIndividualStatement('RD', decodeURIComponent('${encodeURIComponent(r.name)}'), ${Number(r.amount)||0}, decodeURIComponent('${encodeURIComponent(r.frequency||'monthly')}'))" class="bg-slate-100 text-slate-700 px-2 py-1.5 rounded-lg font-bold text-xs" title="View RD statement"><i class="fa-solid fa-file-lines mr-1"></i>Statement</button>
                         <button onclick="openInvestmentPayModal('${r.name}', ${r.amount}, 'RD')" class="bg-orange-600 hover:bg-orange-700 text-white px-2.5 py-1.5 rounded-lg font-bold text-xs shadow"><i class="fa-solid fa-indian-rupee-sign mr-1"></i> Pay</button>
                         <button onclick="openMasterEditModal('rds', ${r.id})" class="edit-btn-guard text-indigo-600 hover:bg-indigo-100 px-2 py-1 rounded text-xs font-bold transition" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
                         <button onclick="requestSafeDelete('master', ${r.id}, 'rds')" class="delete-btn-guard text-slate-400 hover:text-rose-600 p-1.5"><i class="fa-solid fa-trash text-sm"></i></button>
@@ -4044,7 +4295,11 @@
                             <span class="font-bold text-slate-900">${t.category || t.location || t.source}</span>
                             <p class="text-xs text-slate-500">${t.date} | Mode: ${t.entityName || t.mode || 'N/A'}</p>
                         </div>
-                        <span class="text-xs ${colorCls}">${isInc ? '+' : '-'}₹${parseFloat(t.amount).toFixed(2)}</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-xs ${colorCls}">${isInc ? '+' : '-'}₹${parseFloat(t.amount).toFixed(2)}</span>
+                            <button onclick="openUniversalEditModal('transaction', ${Number(t.id)})" class="edit-btn-guard text-indigo-600 px-1.5 py-1 rounded" title="Edit entry"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="requestSafeDelete('transaction', ${Number(t.id)})" class="delete-btn-guard text-rose-600 px-1.5 py-1 rounded" title="Delete entry"><i class="fa-solid fa-trash"></i></button>
+                        </div>
                     </div>
                 `;
             }).join('') || '<p class="text-slate-400 italic">No recent transactions recorded.</p>';
@@ -4648,7 +4903,57 @@
             renderReports();
         }
 
+        function renderProjectionReport(){
+            const periodEl=document.getElementById('projectionPeriod'); if(!periodEl)return;
+            const annual=periodEl.value==='annual';
+            const categoryEl=document.getElementById('projectionCategory');
+            const selectedCategory=categoryEl?categoryEl.value:'all';
+            const yearEl=document.getElementById('projectionYear');
+            if(yearEl&&!yearEl.options.length){const y=new Date().getFullYear();for(let yr=y;yr>=y-10;yr--){const o=document.createElement('option');o.value=String(yr);o.textContent=String(yr);yearEl.appendChild(o);}}
+            const year=Number(yearEl?.value)||new Date().getFullYear();
+            const rows=[];
+            const money=n=>'₹'+(Number(n)||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+            const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+            // Count Monday-Friday dates in the selected report year for daily MF SIPs.
+            const weekdaysInYear=yr=>{let count=0;const d=new Date(yr,0,1);while(d.getFullYear()===yr){const day=d.getDay();if(day!==0&&day!==6)count++;d.setDate(d.getDate()+1);}return count;};
+            const workingDaysPerYear=weekdaysInYear(year);
+            const frequencyMultiplier=f=>String(f||'monthly').toLowerCase()==='yearly'?1:12;
+            const allowRecurring=selectedCategory==='all'||['rd','mutualFund','lic','loan','recharge'].includes(selectedCategory);
+            const addRecurring=(arr,label,key)=>{if(selectedCategory!=='all'&&selectedCategory!==key)return;(Array.isArray(arr)?arr:[]).forEach(x=>{const amt=Number(x.amount)||0;if(amt<=0)return;const freq=String(x.frequency||'monthly').toLowerCase();let annualAmt;if(key==='mutualFund'&&freq==='daily'){annualAmt=amt*workingDaysPerYear;}else{annualAmt=amt*frequencyMultiplier(freq);}rows.push({name:(x.name||label)+' ('+label+(key==='mutualFund'&&freq==='daily'?' · Daily, Mon–Fri':'')+')',monthly:annualAmt/12,annual:annualAmt,kind:key});});};
+            if(allowRecurring){
+                addRecurring(appData.rds,'RD','rd');addRecurring(appData.mfs,'Mutual Fund','mutualFund');addRecurring(appData.lics,'LIC','lic');addRecurring(appData.loans,'Loan / EMI','loan');
+                if(selectedCategory==='all'||selectedCategory==='recharge') (appData.rechargeRecords||[]).forEach(r=>{const amt=Number(r.amount)||0,days=Number(r.validityDays)||0;if(amt<=0||days<=0||r.historicalOnly)return;const annualAmt=amt*365/days;rows.push({name:(r.name||'Recharge')+' ('+(r.type||'Recharge')+', '+days+' days)',monthly:annualAmt/12,annual:annualAmt,kind:'recharge'});});
+            }
+            const txs=[...(appData.transactions||[]),...(appData.specialTransactions||[]).map(s=>({type:(String(s.type||'').includes('Given')||['Bank Flow Out (Non-Expense)','CC Bill Settlement'].includes(s.type))?'expense':'income',amount:s.amount,date:s.date,category:s.category||s.type||'Special Transaction',source:s.source,note:s.note})),...(appData.borrowedTransactions||[]).map(b=>({type:b.type==='Returned to Person'?'expense':'income',amount:b.amount,date:b.date,category:b.category||b.type||'Borrowed Transaction',source:b.source,note:b.note}))];
+            const actual={income:0,expense:0};
+            const actualGroups={income:{},expense:{}};
+            txs.forEach(t=>{
+                if(!String(t.date||'').startsWith(String(year)+'-'))return;
+                const type=String(t.type||'').toLowerCase()==='income'?'income':'expense';
+                const amt=Number(t.amount)||0;if(amt<=0)return;
+                actual[type]+=amt;
+                const label=String(t.category||t.source||t.location||'General');
+                actualGroups[type][label]=(actualGroups[type][label]||0)+amt;
+            });
+            if(selectedCategory==='expense'||selectedCategory==='income'){
+                const type=selectedCategory;
+                Object.entries(actualGroups[type]).forEach(([name,total])=>rows.push({name:name+' ('+(type==='income'?'Income':'Expense')+')',monthly:total/12,annual:total,kind:type}));
+            }
+            const filteredActualIncome=selectedCategory==='income'?actual.income:(selectedCategory==='all'?actual.income:0);
+            const filteredActualExpense=selectedCategory==='expense'?actual.expense:(selectedCategory==='all'?actual.expense:0);
+            const projectedExpense=rows.reduce((a,r)=>a+r[annual?'annual':'monthly'],0);
+            const projectionSummary=document.getElementById('projectionSummary');
+            if(projectionSummary){
+                const categoryNames={all:'All categories combined',rd:'RD only',mutualFund:'Mutual Fund only',lic:'LIC only',loan:'Loan / EMI only',recharge:'Recharge only',expense:'Expense only',income:'Income only'};
+                const totalLabel=(selectedCategory==='expense'||selectedCategory==='income')?'Actual '+(selectedCategory==='income'?'income':'expense')+' total':'Estimated total';
+                projectionSummary.innerHTML='<div class="bg-indigo-50 rounded-xl p-3 col-span-2"><p class="text-xs text-indigo-700 font-bold">'+esc(categoryNames[selectedCategory]||'Selected category')+' · '+(annual?'Annual':'Monthly')+'</p><p class="text-base font-extrabold text-indigo-900">'+money(projectedExpense)+'</p><p class="text-[10px] text-indigo-700">'+esc(totalLabel)+' · '+(annual?'year':'month')+'</p><p class="text-[10px] text-slate-500">'+rows.length+' item/category rows</p></div><div class="bg-emerald-50 rounded-xl p-3"><p class="text-xs text-emerald-700 font-bold">Actual '+year+' income</p><p class="text-base font-extrabold text-emerald-800">'+money(selectedCategory==='all'||selectedCategory==='income'?actual.income:0)+'</p><p class="text-[10px] text-emerald-700">Saved transactions</p></div><div class="bg-rose-50 rounded-xl p-3"><p class="text-xs text-rose-700 font-bold">Actual '+year+' expense</p><p class="text-base font-extrabold text-rose-800">'+money(selectedCategory==='all'||selectedCategory==='expense'?actual.expense:0)+'</p><p class="text-[10px] text-rose-700">Saved transactions</p></div>';
+            }
+            const tbody=document.getElementById('projectionRows');
+            if(tbody){rows.sort((a,b)=>b.annual-a.annual);tbody.innerHTML=rows.length?rows.map(r=>'<tr class="border-t"><td class="p-2">'+esc(r.name)+'</td><td class="p-2 text-right whitespace-nowrap">'+money(r.monthly)+'</td><td class="p-2 text-right whitespace-nowrap">'+money(r.annual)+'</td></tr>').join('')+'<tr class="border-t bg-indigo-50 font-bold"><td class="p-2">'+(selectedCategory==='all'?'TOTAL ESTIMATE': 'SELECTED TOTAL')+'</td><td class="p-2 text-right">'+money(rows.reduce((a,r)=>a+r.monthly,0))+'</td><td class="p-2 text-right">'+money(rows.reduce((a,r)=>a+r.annual,0))+'</td></tr>':'<tr><td colspan="3" class="p-3 text-slate-500">Is category ke liye data nahi mila. RD/MF/LIC/Loan ke saved amounts ya selected year ke actual Income/Expense transactions check karein. Recharge estimate ke liye amount aur validity days hona zaroori hai.</td></tr>';}
+        }
+
         function renderReports() {
+            renderProjectionReport();
             let filterType = document.getElementById('reportFilterType').value;
             let selectedItem = document.getElementById('reportEntityItem').value;
             let periodFilter = document.getElementById('reportPeriodFilter').value;
@@ -4699,7 +5004,14 @@
                 });
             });
 
-            let filteredTx = combinedList.sort((a, b) => b.id - a.id);
+            // Sort every report/ledger transaction by the actual transaction date, not entry ID/creation time.
+            // Same-day items retain newest-entry-first order as a tie-breaker.
+            let filteredTx = combinedList.sort((a, b) => {
+                const dateA = String(a.date || '');
+                const dateB = String(b.date || '');
+                const dateCompare = dateB.localeCompare(dateA);
+                return dateCompare !== 0 ? dateCompare : (Number(b.id) || 0) - (Number(a.id) || 0);
+            });
 
             if(selectedItem !== 'all') {
                 if(filterType === 'entity') {
@@ -4951,13 +5263,180 @@
         function debtExportCSV(){const rows=[['Date','Person','Phone','Direction','Amount','Mode','Account/Card','Effect','Due date','Person balance','Notes'],...debtRecords.map(r=>[r.date,r.person,r.phone,r.direction,r.amount,r.mode,r.entityName,r.effect,r.dueDate,debtPersonBalance(r.person),r.notes])];const csv=rows.map(row=>row.map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(',')).join('\r\n');const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='udhaar-party-ledger-'+debtToday()+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 
 
-    </script>
+        // PAYMENT REMINDERS + RECHARGE MANAGER (additive; stored in existing appData)
+        function localISODate(date) { const d=new Date(date); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+        function dayDiff(from,to) { const a=new Date(from+'T00:00:00'); const b=new Date(to+'T00:00:00'); return Math.round((b-a)/86400000); }
+        function safeFeatureText(v) { return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+        function ensureFeatureArrays(){ if(!Array.isArray(appData.paymentReminders))appData.paymentReminders=[]; if(!Array.isArray(appData.rechargeRecords))appData.rechargeRecords=[]; }
+        function savePaymentReminder(e){ e.preventDefault(); ensureFeatureArrays(); const due=document.getElementById('prDueDate').value; const title=document.getElementById('prTitle').value.trim(); if(!title||!due)return; appData.paymentReminders.push({id:Date.now(),title,type:document.getElementById('prType').value,amount:Number(document.getElementById('prAmount').value)||0,dueDate:due,repeat:document.getElementById('prRepeat').value,paid:false,createdAt:localISODate(new Date())}); saveData(); renderPaymentReminders(); document.getElementById('paymentReminderForm').reset(); document.getElementById('rcDate').value=localISODate(new Date()); alert('Payment reminder save ho gaya!'); }
+        function advanceReminderDate(date,repeat){ const d=new Date(date+'T12:00:00'); if(repeat==='monthly')d.setMonth(d.getMonth()+1); else if(repeat==='quarterly')d.setMonth(d.getMonth()+3); else if(repeat==='yearly')d.setFullYear(d.getFullYear()+1); else return null; return localISODate(d); }
+        function markPaymentReminderPaid(id){ ensureFeatureArrays(); const r=appData.paymentReminders.find(x=>String(x.id)===String(id)); if(!r)return; if(r.repeat&&r.repeat!=='none'){const next=advanceReminderDate(r.dueDate,r.repeat); if(next){r.dueDate=next;r.paid=false;r.lastPaidDate=localISODate(new Date());}} else r.paid=true; saveData();renderPaymentReminders(); }
+        function deletePaymentReminder(id){ if(!confirm('Is reminder ko delete karna hai?'))return; appData.paymentReminders=appData.paymentReminders.filter(x=>String(x.id)!==String(id));saveData();renderPaymentReminders(); }
+        function existingFinanceDueItems(){const today=new Date();today.setHours(0,0,0,0);const out=[];function nextDue(day,month,yearly){let y=today.getFullYear(),m=today.getMonth();if(yearly){m=Math.max(0,Math.min(11,Number(month)||1)-1);if(new Date(y,m,Math.min(Number(day)||1,new Date(y,m+1,0).getDate()))<today)y++;}let d=Math.min(Math.max(1,Number(day)||1),new Date(y,m+1,0).getDate());let x=new Date(y,m,d);if(!yearly&&x<today){m++;if(m>11){m=0;y++;}x=new Date(y,m,Math.min(Math.max(1,Number(day)||1),new Date(y,m+1,0).getDate()));}return localISODate(x);}function add(arr,type){(arr||[]).forEach(x=>{if(!x||x.dueDay==null)return;const due=nextDue(x.dueDay,x.dueMonth,x.frequency==='yearly');out.push({title:x.name||type,type,dueDate:due,amount:Number(x.amount)||0,auto:true});});}add(appData.lics,'LIC');add(appData.rds,'RD');add(appData.mfs,'Mutual Fund');add(appData.loans,'Loan / EMI');(appData.cards||[]).forEach(x=>{if(x.dueDay!=null)out.push({title:x.name||'Credit Card',type:'Credit Card',dueDate:nextDue(x.dueDay,null,false),amount:Number(x.dueAmount)||0,auto:true});});return out.filter(x=>dayDiff(localISODate(new Date()),x.dueDate)<=7).sort((a,b)=>a.dueDate.localeCompare(b.dueDate));}
+        function renderPaymentReminders(){
+          const el=document.getElementById('paymentReminderList'); if(!el)return; ensureFeatureArrays();
+          const today=localISODate(new Date());
+          const list=appData.paymentReminders.slice().sort((a,b)=>String(a.dueDate).localeCompare(String(b.dueDate)));
+          const auto=existingFinanceDueItems();
+          const autoHtml=auto.length?'<h4 class="font-bold text-sm text-indigo-800 mb-2">Existing LIC / RD / Mutual Fund / Loan / Credit Card due dates (next 7 days)</h4>'+auto.map(r=>`<div class="border border-indigo-200 bg-indigo-50 rounded-xl p-3"><p class="font-bold text-sm">${safeFeatureText(r.title)} <span class="font-normal text-xs">(${safeFeatureText(r.type)})</span></p><p class="text-xs mt-1">Due: ${safeFeatureText(r.dueDate)} · ${dayDiff(today,r.dueDate)<0?'Overdue':dayDiff(today,r.dueDate)===0?'Due today':dayDiff(today,r.dueDate)+' day(s) left'} · ₹${Number(r.amount).toLocaleString('en-IN')}</p><p class="text-[11px] text-indigo-700 mt-1">Existing account record se calculated</p></div>`).join(''):'<p class="text-xs text-slate-500">Existing saved finance records mein agle 7 din ka due nahi mila.</p>';
+          const recharge=appData.rechargeRecords.filter(r=>dayDiff(today,r.expiryDate)<=7).slice().sort((a,b)=>String(a.expiryDate).localeCompare(String(b.expiryDate)));
+          const rechargeHtml='<h4 class="font-bold text-sm text-sky-800 mt-4 mb-2">Mobile / TV recharge reminders</h4>'+(recharge.length?recharge.map(r=>{const diff=dayDiff(today,r.expiryDate);const cls=diff<0?'bg-rose-50 border-rose-200':diff<=7?'bg-amber-50 border-amber-200':'bg-slate-50 border-slate-200';const state=diff<0?`${Math.abs(diff)} din overdue`:diff===0?'Aaj expiry hai':diff<=7?`${diff} din mein expiry — recharge karein`:`${diff} din baaki`;return `<div class="border ${cls} rounded-xl p-3"><div class="flex justify-between gap-2"><div class="min-w-0"><p class="font-bold text-sm">Particulars: ${safeFeatureText(r.name)} <span class="text-xs font-normal text-slate-500">(${safeFeatureText(r.type)})</span></p><p class="text-xs text-slate-700 mt-1">Mobile Number / JioTV Customer ID: <strong>${safeFeatureText(r.number||'Not entered')}</strong></p><p class="text-xs text-slate-600">Recharge amount: ₹${Number(r.amount||0).toLocaleString('en-IN')} · Payment: ${safeFeatureText(r.mode||'—')}</p><p class="text-xs text-slate-600">Recharge: ${safeFeatureText(r.rechargeDate)} · Validity: ${Number(r.validityDays)} days</p><p class="text-xs font-bold mt-1 ${diff<=7?'text-amber-800':'text-sky-700'}">Expiry: ${safeFeatureText(r.expiryDate)} — ${state}${diff<=7?' · Reminder active':''}</p></div><div class="flex flex-col gap-1 shrink-0"><button onclick="editRecharge(${Number(r.id)})" class="edit-btn-guard text-xs bg-indigo-600 text-white rounded-lg px-2 py-1.5">Edit</button><button onclick="renewRecharge(${Number(r.id)})" class="text-xs bg-sky-600 text-white rounded-lg px-2 py-1.5">Recharged</button><button onclick="deleteRecharge(${Number(r.id)})" class="delete-btn-guard text-xs text-rose-700 border border-rose-200 rounded-lg px-2 py-1.5">Delete</button></div></div></div>`}).join(''):'<p class="text-xs text-slate-500">Agle 7 din mein koi mobile/TV recharge due nahi hai.</p>');
+          let customHtml='';
+          if(list.length) customHtml='<h4 class="font-bold text-sm mt-4 mb-2">Previously saved custom reminders</h4>'+list.map(r=>{const diff=dayDiff(today,r.dueDate);const status=r.paid?'Paid':diff<0?`${Math.abs(diff)} din overdue`:diff===0?'Aaj due':diff<=7?`${diff} din mein due`:'Upcoming';const cls=r.paid?'bg-emerald-50 border-emerald-200':diff<=7?'bg-rose-50 border-rose-200':'bg-slate-50 border-slate-200';return `<div class="border ${cls} rounded-xl p-3"><div class="flex justify-between gap-2"><div class="min-w-0"><p class="font-bold text-sm break-words">${safeFeatureText(r.title)}</p><p class="text-xs text-slate-600 mt-1">${safeFeatureText(r.type)} · ${safeFeatureText(r.dueDate)} · ${r.amount?'₹'+Number(r.amount).toLocaleString('en-IN'): 'Amount not set'}</p><p class="text-xs font-bold mt-1 ${r.paid?'text-emerald-700':diff<=7?'text-rose-700':'text-slate-600'}">${status}${r.repeat&&r.repeat!=='none'?' · '+safeFeatureText(r.repeat):''}</p></div><div class="flex flex-col gap-1 shrink-0">${!r.paid?`<button onclick="markPaymentReminderPaid(${Number(r.id)})" class="text-xs bg-emerald-600 text-white rounded-lg px-2 py-1.5">Paid</button>`:''}<button onclick="deletePaymentReminder(${Number(r.id)})" class="delete-btn-guard text-xs text-rose-700 border border-rose-200 rounded-lg px-2 py-1.5">Delete</button></div></div></div>`}).join('');
+          el.innerHTML=autoHtml+customHtml;
+          renderRechargeManager();
+        }
+        function showDueReminderSummary(){ ensureFeatureArrays();const today=localISODate(new Date());const due=appData.paymentReminders.filter(r=>!r.paid&&dayDiff(today,r.dueDate)<=7);const expired=appData.rechargeRecords.filter(r=>dayDiff(today,r.expiryDate)<=7);if(due.length||expired.length){const msg=[];if(due.length)msg.push(`${due.length} payment reminder(s) due within 7 days / overdue`);if(expired.length)msg.push(`${expired.length} recharge(s) expire within 7 days / expired`);const banner=document.getElementById('alertBanner');const txt=document.getElementById('alertTextContainer');if(banner&&txt){banner.classList.remove('hidden');txt.innerHTML=msg.map(s=>`<p>${safeFeatureText(s)} — open Payment Reminders.</p>`).join('');}} }
+        function requestReminderNotifications(){if(!('Notification' in window)){alert('Is browser mein notifications supported nahi hain. App ke andar reminders phir bhi dikhenge.');return;}Notification.requestPermission().then(p=>{if(p==='granted'){alert('Notifications enabled. Browser/app background mein notifications ki guarantee nahi; app kholne par reminders refresh honge.');notifyDueItems();}else alert('Permission nahi mili. App ke andar reminders available rahenge.');});}
+        function notifyDueItems(){if(!('Notification' in window)||Notification.permission!=='granted')return;ensureFeatureArrays();const today=localISODate(new Date());const items=appData.paymentReminders.filter(r=>!r.paid&&dayDiff(today,r.dueDate)<=7);const recharges=appData.rechargeRecords.filter(r=>dayDiff(today,r.expiryDate)<=7);if(items.length||recharges.length)new Notification('Finance Tracker reminder',{body:`${items.length} payment due/overdue · ${recharges.length} recharge expiry due soon`});}
+        let editingRechargeId=null;
+        let rechargeRenewalMode=false;
+        function toggleRechargePaymentSource(){const mode=document.getElementById('rcMode').value;const historical=document.getElementById('rcHistoricalOnly')?.checked||false;document.getElementById('rcCardContainer').classList.toggle('hidden',historical||mode!=='card');document.getElementById('rcAccountContainer').classList.toggle('hidden',historical||mode!=='account');if(mode==='card')populateCardDropdown('rcCardSelect');if(mode==='account')populateAccountDropdown('rcAccountSelect');}
+        function resetRechargeForm(){editingRechargeId=null;rechargeRenewalMode=false;const f=document.getElementById('rechargeForm');f.reset();document.getElementById('rcDate').value=localISODate(new Date());document.getElementById('rcDays').value='84';document.getElementById('rcAmount').required=true;document.getElementById('rcHistoricalOnly').checked=false;document.getElementById('rcSaveButton').textContent='Save recharge + add expense';toggleHistoricalRechargeMode();toggleRechargePaymentSource();}
+        function toggleHistoricalRechargeMode(){const historical=document.getElementById('rcHistoricalOnly').checked;const amount=document.getElementById('rcAmount');amount.required=!historical;amount.min=historical?'0':'0.01';document.getElementById('rcSaveButton').textContent=historical?'Save old recharge (no expense)':'Save recharge + add expense';document.getElementById('rcCardContainer').classList.toggle('hidden',historical||document.getElementById('rcMode').value!=='card');document.getElementById('rcAccountContainer').classList.toggle('hidden',historical||document.getElementById('rcMode').value!=='account');}
+        function saveRecharge(e){
+          e.preventDefault();
+          ensureFeatureArrays();
+          const historical=document.getElementById('rcHistoricalOnly').checked;
+          const name=document.getElementById('rcName').value.trim();
+          const type=document.getElementById('rcType').value;
+          const number=document.getElementById('rcNumber').value.trim();
+          const date=document.getElementById('rcDate').value;
+          const days=parseInt(document.getElementById('rcDays').value,10);
+          const amount=Number(document.getElementById('rcAmount').value)||0;
+          const mode=document.getElementById('rcMode').value;
+          if(!name||!date||!Number.isFinite(days)||days<1||(!historical&&amount<=0)){
+            alert('Naam, date aur validity sahi enter karein; naye recharge ke liye amount bhi zaroori hai.');
+            return;
+          }
+          let entityName=mode;
+          if(!historical&&mode==='card'){
+            entityName=document.getElementById('rcCardSelect').value;
+            if(!entityName||!appData.cards.some(c=>c.name===entityName)){alert('Recharge expense ke liye Credit Card select karein.');return;}
+          }else if(!historical&&mode==='account'){
+            entityName=document.getElementById('rcAccountSelect').value;
+            if(!entityName||!appData.banks.some(b=>b.name===entityName)){alert('Recharge expense ke liye Bank Account select karein.');return;}
+          }
 
-<script>
-// PWA service worker registration (requires HTTPS hosting or localhost).
-if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(err => console.warn('Offline cache registration failed:', err)));
-}
+          // Validity is always counted from the actual recharge date, not the old expiry date.
+          const expiryDateObj=new Date(date+'T12:00:00');
+          expiryDateObj.setDate(expiryDateObj.getDate()+days);
+          const expiry=localISODate(expiryDateObj);
+          const norm=v=>String(v||'').replace(/[\s\-()+]/g,'').toLowerCase();
+          const sameConnection=(r)=>String(r.type||'').toLowerCase()===String(type||'').toLowerCase() && norm(r.number)===norm(number) && norm(number)!=='';
+          const explicitlyEditing=!!editingRechargeId;
+          const explicitlySelected=explicitlyEditing?appData.rechargeRecords.find(x=>String(x.id)===String(editingRechargeId)):null;
+          // If a number/Customer ID already exists, reuse that master record rather than adding a duplicate.
+          // The Edit button updates details; Recharged or saving the same ID as a new recharge adds a fresh expense.
+          const matchedRecord=explicitlySelected || (!explicitlyEditing ? appData.rechargeRecords.find(sameConnection) : null) || null;
+          const existing=matchedRecord;
+          const recordId=existing?existing.id:Date.now();
+          const record={id:recordId,name,type,number,rechargeDate:date,validityDays:days,expiryDate:expiry,amount,mode,entityName,historicalOnly:historical,createdAt:existing?.createdAt||localISODate(new Date())};
+          const wasEditing=!!explicitlySelected;
+          const autoMatched=!!existing&&!wasEditing;
+          const isRenewal=wasEditing&&rechargeRenewalMode;
+          if(existing){
+            const idx=appData.rechargeRecords.findIndex(x=>String(x.id)===String(existing.id));
+            if(idx>=0)appData.rechargeRecords[idx]=record;
+            else appData.rechargeRecords.push(record);
+          }else{
+            appData.rechargeRecords.push(record);
+          }
+
+          const category=record.type==='Mobile'?'Mobile Recharge':'TV / Other Recharge';
+          const linkedTx=wasEditing?appData.transactions.find(t=>String(t.rechargeRecordId)===String(record.id)&&t.type==='expense'):null;
+          const addNewExpense=!historical&&(!wasEditing||isRenewal||autoMatched);
+          const updateOldExpense=!historical&&wasEditing&&!isRenewal&&!!linkedTx;
+          const expenseNote=`${category}: ${name}${number?' ('+number+')':''} · Recharge date ${date} · Validity ${days} days · expiry ${expiry}`;
+          if(addNewExpense){
+            let txId=Date.now();
+            while(appData.transactions.some(t=>String(t.id)===String(txId)))txId++;
+            appData.transactions.push({id:txId,type:'expense',location:'Others',category,amount,mode,entityName,date,note:expenseNote,rechargeRecordId:record.id});
+          }else if(updateOldExpense){
+            Object.assign(linkedTx,{category,amount,mode,entityName,date,note:expenseNote,rechargeRecordId:record.id});
+          }
+
+          editingRechargeId=null;
+          rechargeRenewalMode=false;
+          saveData();
+          renderPaymentReminders();
+          renderRechargeManager();
+          resetRechargeForm();
+          if(historical){
+            alert(`Recharge record save/update ho gaya. Koi naya expense add nahi hua. Expiry: ${expiry}.`);
+          }else if(addNewExpense){
+            const action=autoMatched?'Existing connection update ho gaya; naya recharge expense alag date ke saath add hua.':(isRenewal?'Existing connection update ho gaya; naya recharge expense alag date ke saath add hua.':'Recharge save ho gaya aur expense add ho gaya.');
+            alert(`${action} Amount ₹${amount.toLocaleString('en-IN')}. Recharge date: ${date}. Expiry: ${expiry}.`);
+          }else if(updateOldExpense){
+            alert(`Recharge details update ho gayi. Existing expense record update hua; duplicate expense nahi banaya gaya. Expiry: ${expiry}.`);
+          }else{
+            alert(`Recharge master entry update ho gayi. Koi naya expense add nahi hua. Expiry: ${expiry}.`);
+          }
+        }
+        // Compact, draggable Add Expense shortcut. Position is saved locally on this device.
+        (function initDraggableExpenseFab(){
+          const fab=document.getElementById('quickExpenseFab'); if(!fab) return;
+          const key='financeTracker.quickExpenseFab.position.v1'; let startX=0,startY=0,origX=0,origY=0,moved=false,active=false,pointerId=null;
+          const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
+          function applyPosition(x,y){const maxX=Math.max(0,window.innerWidth-fab.offsetWidth),maxY=Math.max(0,window.innerHeight-fab.offsetHeight);x=clamp(x,0,maxX);y=clamp(y,0,maxY);fab.style.left=x+'px';fab.style.top=y+'px';fab.style.right='auto';fab.style.bottom='auto';return {x,y};}
+          function restore(){try{const p=JSON.parse(localStorage.getItem(key)||'null');if(p&&Number.isFinite(p.x)&&Number.isFinite(p.y)){applyPosition(p.x,p.y);return;}}catch(e){}fab.style.left='auto';fab.style.top='auto';fab.style.right='14px';fab.style.bottom='76px';}
+          fab.addEventListener('pointerdown',e=>{if(e.button!==undefined&&e.button!==0)return;active=true;moved=false;pointerId=e.pointerId;startX=e.clientX;startY=e.clientY;const r=fab.getBoundingClientRect();origX=r.left;origY=r.top;fab.setPointerCapture?.(pointerId);});
+          fab.addEventListener('pointermove',e=>{if(!active||e.pointerId!==pointerId)return;const dx=e.clientX-startX,dy=e.clientY-startY;if(Math.abs(dx)>5||Math.abs(dy)>5)moved=true;if(moved){applyPosition(origX+dx,origY+dy);e.preventDefault();}});
+          function end(e){if(!active|| (e&&e.pointerId!==pointerId))return;active=false;if(moved){const r=fab.getBoundingClientRect();try{localStorage.setItem(key,JSON.stringify({x:r.left,y:r.top}));}catch(err){}fab.dataset.dragged='1';setTimeout(()=>delete fab.dataset.dragged,0);}pointerId=null;}
+          fab.addEventListener('pointerup',end);fab.addEventListener('pointercancel',end);
+          fab.addEventListener('click',e=>{if(fab.dataset.dragged==='1'){e.preventDefault();e.stopImmediatePropagation();return;}switchTab('addExpense');window.scrollTo({top:0,behavior:'smooth'});});
+          window.addEventListener('resize',()=>{const r=fab.getBoundingClientRect();if(fab.style.left&&fab.style.top){const p=applyPosition(r.left,r.top);try{localStorage.setItem(key,JSON.stringify(p));}catch(e){}}});
+          restore();
+        })();
+
+        function renderRechargeManager(){const el=document.getElementById('rechargeAlerts');if(!el)return;ensureFeatureArrays();const today=localISODate(new Date());const list=appData.rechargeRecords.slice().sort((a,b)=>String(a.expiryDate).localeCompare(String(b.expiryDate)));const count=document.getElementById('rechargeCount');if(count)count.textContent=`${list.length} connection${list.length===1?'':'s'}`;if(!list.length){el.innerHTML='<p class="text-sm text-slate-500">Abhi connection add nahi hai. Upar se mobile/JioTV add karein.</p>';return;}el.innerHTML=list.map(r=>{const diff=dayDiff(today,r.expiryDate);const cls=diff<=7?'bg-amber-50 border-amber-200':'bg-slate-50 border-slate-200';const state=diff<0?`${Math.abs(diff)} din pehle expire hua`:diff===0?'Aaj expiry hai':diff<=7?`${diff} din mein expiry — recharge karna hai`:`${diff} din baaki`;return `<div class="border ${cls} rounded-xl p-3"><div class="flex justify-between gap-2"><div class="min-w-0"><p class="font-bold text-sm">Particulars: ${safeFeatureText(r.name)} <span class="text-xs font-normal text-slate-500">(${safeFeatureText(r.type)})</span></p><p class="text-xs text-slate-700 mt-1">Mobile Number / JioTV Customer ID: <strong>${safeFeatureText(r.number||'Not entered')}</strong></p><p class="text-xs text-slate-600">Recharge amount: ₹${Number(r.amount||0).toLocaleString('en-IN')} · Payment: ${safeFeatureText(r.mode||'—')}</p><p class="text-xs text-slate-600">Recharge: ${safeFeatureText(r.rechargeDate)} · Validity: ${Number(r.validityDays)} days</p><p class="text-xs font-bold mt-1 ${diff<=7?'text-amber-800':'text-sky-700'}">Expiry: ${safeFeatureText(r.expiryDate)} — ${state}</p></div><div class="flex flex-col gap-1 shrink-0"><button onclick="editRecharge(${Number(r.id)})" class="edit-btn-guard text-xs bg-indigo-600 text-white rounded-lg px-2 py-1.5">Edit</button><button onclick="renewRecharge(${Number(r.id)})" class="text-xs bg-sky-600 text-white rounded-lg px-2 py-1.5">Recharged</button><button onclick="deleteRecharge(${Number(r.id)})" class="delete-btn-guard text-xs text-rose-700 border border-rose-200 rounded-lg px-2 py-1.5">Delete</button></div></div></div>`}).join('');}
+        function editRecharge(id){const r=appData.rechargeRecords.find(x=>String(x.id)===String(id));if(!r)return;switchTab('rechargeManager');editingRechargeId=id;rechargeRenewalMode=false;document.getElementById('rcName').value=r.name||'';document.getElementById('rcType').value=r.type||'Mobile';document.getElementById('rcNumber').value=r.number||'';document.getElementById('rcDate').value=r.rechargeDate||localISODate(new Date());document.getElementById('rcDays').value=String(r.validityDays||84);document.getElementById('rcAmount').value=r.amount||'';document.getElementById('rcMode').value=r.mode||'cash';document.getElementById('rcHistoricalOnly').checked=!!r.historicalOnly;toggleRechargePaymentSource();toggleHistoricalRechargeMode();if(r.mode==='card')document.getElementById('rcCardSelect').value=r.entityName||r.cardName||'';if(r.mode==='account')document.getElementById('rcAccountSelect').value=r.entityName||r.accountName||'';document.getElementById('rcSaveButton').textContent='Update recharge details';document.getElementById('rcName').scrollIntoView({behavior:'smooth',block:'center'});}
+        function renewRecharge(id){const r=appData.rechargeRecords.find(x=>String(x.id)===String(id));if(!r)return;switchTab('rechargeManager');editingRechargeId=id;rechargeRenewalMode=true;document.getElementById('rcHistoricalOnly').checked=false;document.getElementById('rcName').value=r.name;document.getElementById('rcType').value=r.type;document.getElementById('rcNumber').value=r.number||'';document.getElementById('rcDate').value=localISODate(new Date());document.getElementById('rcDays').value=String(r.validityDays||84);document.getElementById('rcAmount').value=r.amount||'';document.getElementById('rcMode').value=r.mode||'cash';document.getElementById('rcSaveButton').textContent='Confirm new recharge + add expense';toggleRechargePaymentSource();if(r.mode==='card')document.getElementById('rcCardSelect').value=r.entityName||r.cardName||'';if(r.mode==='account')document.getElementById('rcAccountSelect').value=r.entityName||r.accountName||'';document.getElementById('rcName').scrollIntoView({behavior:'smooth',block:'center'});alert('Naye recharge ki details confirm karein. Save karne par expiry update hogi aur naya expense add hoga.');}
+        function deleteRecharge(id){if(!confirm('Is recharge record ko delete karna hai?'))return;appData.rechargeRecords=appData.rechargeRecords.filter(r=>String(r.id)!==String(id));saveData();renderPaymentReminders();renderRechargeManager();}
+
+
+    
+        let individualStatementState = {type:'', name:'', amount:null, frequency:'monthly'};
+        function openIndividualStatement(type, name, amount = null, frequency = 'monthly') {
+            individualStatementState = {type, name, amount, frequency};
+            document.getElementById('individualStatementTitle').textContent = type + ' Statement';
+            document.getElementById('individualStatementSubtitle').textContent = name + (amount != null ? ' · Scheduled installment ₹' + Number(amount).toLocaleString('en-IN') + ' · ' + frequency : '');
+            document.getElementById('individualStatementFrom').value = '';
+            document.getElementById('individualStatementTo').value = '';
+            const modal=document.getElementById('individualStatementModal'); modal.classList.remove('hidden'); modal.classList.add('flex');
+            renderIndividualStatement();
+        }
+        function renderIndividualStatement() {
+            const st=individualStatementState, from=document.getElementById('individualStatementFrom').value, to=document.getElementById('individualStatementTo').value;
+            const entries=[];
+            (appData.transactions||[]).forEach(t=>{
+                const isInvestment=t.type==='investment_deduction' && t.category===st.name && (st.type==='Mutual Fund'||st.type==='RD'||st.type==='LIC');
+                const isLoanExpense=st.type==='Loan' && (String(t.category||'')===st.name || String(t.note||'').toLowerCase().includes(st.name.toLowerCase()));
+                if((isInvestment||isLoanExpense) && t.date) entries.push({date:String(t.date).slice(0,10),details:(t.note||t.location||t.type)+(t.entityName?' · '+t.entityName:''),amount:Number(t.amount)||0,type:'expense'});
+            });
+            (appData.specialTransactions||[]).forEach(t=>{
+                const expected=st.type+' Formality Payment';
+                if(t.party===st.name && t.type===expected && t.date) entries.push({date:String(t.date).slice(0,10),details:(t.note||t.type)+(t.mode?' · '+t.mode:''),amount:Number(t.amount)||0,type:'expense'});
+                if(st.type==='Loan' && (t.party===st.name || String(t.note||'').toLowerCase().includes(st.name.toLowerCase())) && t.date && /loan|emi/i.test(String(t.type||'')+' '+String(t.note||''))) entries.push({date:String(t.date).slice(0,10),details:t.type+(t.note?' · '+t.note:''),amount:Number(t.amount)||0,type:'expense'});
+            });
+            entries.sort((a,b)=>a.date.localeCompare(b.date));
+            const filtered=entries.filter(e=>(!from||e.date>=from)&&(!to||e.date<=to));
+            const total=filtered.reduce((sum,e)=>sum+e.amount,0);
+            document.getElementById('individualStatementSummary').innerHTML='<div class="bg-indigo-50 rounded-xl p-2"><p class="text-[10px] text-indigo-700 font-bold">Entries</p><p class="font-extrabold text-indigo-900">'+filtered.length+'</p></div><div class="bg-emerald-50 rounded-xl p-2"><p class="text-[10px] text-emerald-700 font-bold">Total Paid</p><p class="font-extrabold text-emerald-900">₹'+total.toLocaleString('en-IN',{maximumFractionDigits:2})+'</p></div><div class="bg-slate-100 rounded-xl p-2"><p class="text-[10px] text-slate-600 font-bold">Last Payment</p><p class="font-extrabold text-slate-900">'+(filtered.length?filtered[filtered.length-1].date:'—')+'</p></div>';
+            document.getElementById('individualStatementRows').innerHTML=filtered.length?filtered.slice().reverse().map(e=>'<tr class="border-t"><td class="p-2 whitespace-nowrap">'+e.date+'</td><td class="p-2">'+String(e.details).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))+'</td><td class="p-2 text-right whitespace-nowrap">₹'+e.amount.toLocaleString('en-IN',{maximumFractionDigits:2})+'</td></tr>').join(''):'<tr><td colspan="3" class="p-4 text-center text-slate-500">Is item ke liye selected period mein koi saved payment nahi mila.</td></tr>';
+        }
+
 </script>
+
+    <div id="individualStatementModal" class="fixed inset-0 bg-black/60 z-[90] hidden items-center justify-center p-2 sm:p-4">
+      <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[92vh] overflow-y-auto p-4 sm:p-5 space-y-3 shadow-2xl">
+        <div class="flex items-start justify-between gap-3"><div><h3 id="individualStatementTitle" class="text-base font-extrabold text-slate-900">Individual Statement</h3><p id="individualStatementSubtitle" class="text-xs text-slate-500 mt-1">Saved payments and transactions</p></div><button onclick="closeModal('individualStatementModal')" class="bg-slate-100 rounded-lg px-3 py-2 font-bold">✕</button></div>
+        <div id="individualStatementSummary" class="grid grid-cols-3 gap-2 text-center"></div>
+        <div class="flex flex-wrap gap-2"><label class="text-xs font-semibold flex-1">From<input id="individualStatementFrom" type="date" onchange="renderIndividualStatement()" class="block w-full border rounded-lg p-2 mt-1"></label><label class="text-xs font-semibold flex-1">To<input id="individualStatementTo" type="date" onchange="renderIndividualStatement()" class="block w-full border rounded-lg p-2 mt-1"></label><button onclick="document.getElementById('individualStatementFrom').value='';document.getElementById('individualStatementTo').value='';renderIndividualStatement()" class="self-end bg-slate-100 rounded-lg px-3 py-2 text-xs font-bold">All dates</button></div>
+        <div class="overflow-x-auto"><table class="w-full text-xs"><thead class="bg-slate-100"><tr><th class="p-2 text-left">Date</th><th class="p-2 text-left">Details</th><th class="p-2 text-right">Amount</th></tr></thead><tbody id="individualStatementRows"></tbody></table></div>
+        <p class="text-[10px] text-slate-500">Statement sirf app mein saved transactions dikhata hai; scheduled dues ko actual payment nahi maana jayega.</p>
+      </div>
+    </div>
+
 </body>
 </html>
